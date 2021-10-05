@@ -9,7 +9,7 @@ print('Hello. I am here to help you find the right offer for your customer.\n')
 
 # load portfolio features and create input data frame
 portfolio_features = pd.read_csv('data/portfolio_features.csv')
-X_input = portfolio_features.drop(['offer_id','duration'], axis = 1)
+X_input = portfolio_features.drop(['offer_id', 'duration', 'offer_type'], axis = 1)
 
 ##### input block for the demographic data #####
 # gender
@@ -54,15 +54,20 @@ while True:
         print('Your date appears to be invalid.')
 
 # load model, prredict and print the outcome
-model = pickle.load(open('outcome_prediction.pkl', 'rb'))
+model = pickle.load(open('model/outcome_prediction.pkl', 'rb'))
 predicted_outcome = pd.DataFrame(model.predict(X_input), columns = ['outcome'])
 # convert numeric offer outcome
 predicted_outcome.replace(0, 'success', inplace = True)
 predicted_outcome.replace(1, 'waste', inplace = True)
 predicted_outcome.replace(2, 'failure', inplace = True)
-# load portfolio data frame and concat with predicted outcome
+predicted_outcome.replace(3, 'potential', inplace = True)
+# load portfolio data frame
 portfolio = pd.read_csv('data/portfolio.csv')
-portfolio_predicted = pd.concat([portfolio, predicted_outcome], axis = 1)
+# remove informational offers
+portfolio = portfolio[(portfolio.offer_id != '3f207df678b143eea3cee63160fa8bed') & # offer id of informational offer
+                     (portfolio.offer_id != '5a8bc65990b245e5a138643cd4eb9837')] # offer id of informational offer
+# concat with predicted outcome
+portfolio_predicted = pd.concat([portfolio.reset_index(drop = True), predicted_outcome], axis = 1)
 # print result
 print('\n\n These are the predicted outcomes for the offers in the portfolio:\n')
 print(portfolio_predicted)
